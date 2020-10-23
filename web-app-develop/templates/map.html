@@ -1,0 +1,164 @@
+<html>
+
+<head>
+    <title>A Leaflet map!</title>
+    <link rel="stylesheet" href="../static/css/leaflet.css" />
+    <link rel="stylesheet" href="../static/js/leaflet-routing-machine.css" />
+    <script src="../static/js/leaflet.js"></script>
+    <script src="../static/js/leaflet-routing-machine.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mapbox/corslite@0.0.7/corslite.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/polyline@0.2.0/src/polyline.min.js"></script>
+    <script src="../static/js/L.Routing.OpenRouteService.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <style>
+        #map {
+            height: 100%
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <!-- Input box for co-ordinates -->
+        <form id="cor_form" name="cor_form" onsubmit="return validateForm();">
+            <div class="row">
+                <div class="col-sm-6">
+                    <label>Source Co-ordinates</label>
+                    <input type="text" class="form-control" name="source_lat" placeholder="Latitute">
+                    <input type="text" class="form-control" name="source_lon" placeholder="Longitute">
+                </div>
+                <div class="col-sm-6">
+                    <label>Destination Co-ordinates</label>
+                    <input type="text" class="form-control" name="destination_lat" placeholder="Latitute">
+                    <input type="text" class="form-control" name="destination_lon" placeholder="Longitute">
+                </div>
+            </div>
+            <br>
+            <div class="status" id="warning" style='color:red;'></div>
+            <button type="submit" class="btn btn-primary">SUBMIT</button>
+        </form>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+
+    <script>
+        // initialize the map
+        var map = L.map('map').setView([42.35, -71.08], 13);
+        // var map = L.map('map');
+        // L.esri.basemapLayer('Topographic').addTo(map);
+
+        // // load a tile layer
+        L.tileLayer('http://tiles.mapc.org/basemap/{z}/{x}/{y}.png', {
+            attribution: 'Tiles by <a href="http://mapc.org">MAPC</a>, Data by <a href="http://mass.gov/mgis">MassGIS</a>',
+            maxZoom: 17,
+            minZoom: 9
+        }).addTo(map);
+
+        // form validation
+        function validateForm() {
+            var result = true;
+            $("#warning").html('');
+            var source_lat = document.forms["cor_form"]["source_lat"].value
+            var source_lon = document.forms["cor_form"]["source_lon"].value
+            var destination_lat = document.forms["cor_form"]["destination_lat"].value
+            var destination_lon = document.forms["cor_form"]["destination_lon"].value
+
+            if (source_lat == null || source_lat == "") {
+                $("#warning").html('Please enter source latitute');
+                result = false;
+            }
+            if (source_lon == null || source_lon == "") {
+                $("#warning").html('Please enter source longitute');
+                result = false;
+            }
+            if (destination_lat == null || destination_lat == "") {
+                $("#warning").html('Please enter destination latitute');
+                result = false;
+            }
+            if (destination_lon == null || destination_lon == "") {
+                $("#warning").html('Please enter destination longitute');
+                result = false;
+            }
+
+            return result
+        }
+        // function which will render the source and destination path
+        $("#cor_form").submit(function(e) {
+
+            e.preventDefault(); // avoid to execute the actual submit of the form.
+
+            var request = new XMLHttpRequest();
+            var source_lat = document.forms["cor_form"]["source_lat"].value
+            var source_lon = document.forms["cor_form"]["source_lon"].value
+            var destination_lat = document.forms["cor_form"]["destination_lat"].value
+            var destination_lon = document.forms["cor_form"]["destination_lon"].value
+
+            request.open('GET', 'https://api.openrouteservice.org/v2/directions/driving-car?api_key=5b3ce3597851110001cf62485788356becfe4894aba648ee6673baab&start=' + source_lon + ',' + source_lat + '&end=' + destination_lon + ',' + destination_lat + '');
+
+            request.setRequestHeader('Accept', 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8');
+
+            request.onreadystatechange = function() {
+                if (this.readyState === 4) {
+                    if (this.status === 200) {
+                        L.Routing.control({
+                            waypoints: [
+                                L.latLng(source_lat, source_lon),
+                                L.latLng(destination_lat, destination_lon)
+                            ],
+                            routeWhileDragging: true,
+                            router: new L.Routing.openrouteservice('5b3ce3597851110001cf62485788356becfe4894aba648ee6673baab'),
+                        }).addTo(map);
+                    } else {
+                        var json = JSON.parse(this.responseText)
+                            // console.log(json.error.message)
+                        $("#warning").html(json.error.message);
+
+                    }
+
+
+                }
+            };
+
+            request.send();
+
+            // var form = $(this)
+            // console.log('----------------------')
+
+            // $.ajax({
+            //     type: "POST",
+            //     url: 'map_data',
+            //     data: form.serialize(), // serializes the form's elements.
+            //     success: function(geoJson)
+            //     {
+            //         // L.geoJSON(geoJson, {
+            //         //     style: function (feature) {
+            //         //         return {color: feature.properties.color};
+            //         //     }
+            //         // }).bindPopup(function (layer) {
+            //         //     return layer.feature.properties.description;
+            //         // }).addTo(map);
+            //         // map.fitBounds(geojson.getBounds());
+
+
+            //         // var myLayer = L.geoJSON().addTo(map);
+            //         // myLayer.addData(geoJson);
+            //         // console.log('1')
+
+            //         var geojson = L.geoJSON(geoJson).addTo(map);
+            //         console.log('2')
+            //         map.fitBounds(geojson.getBounds());
+            //         console.log('3')
+
+            //     }
+            // });
+
+
+        });
+    </script>
+</body>
+
+</html>
