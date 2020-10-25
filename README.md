@@ -8,6 +8,6 @@ TO USE: download project, unzip files, run app.py from command line or IDE and i
 
 API :openrouteservice.org/dev/#/api-docs
 
-STATICS: /* LEFTLET: Leaflet 1.7.1, a JS library for interactive maps. http://leafletjs.com*/
-         /* (c) 2010-2019 Vladimir Agafonkin, (c) 2010-2011 CloudMade*/
+STATICS:  LEFTLET: Leaflet 1.7.1, a JS library for interactive maps. http://leafletjs.com
+         
 Enjoy!
