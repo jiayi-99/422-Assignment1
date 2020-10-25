@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="../static/css/leaflet.css" />
     <link rel="stylesheet" href="../static/js/leaflet-routing-machine.css" />
     <script src="../static/js/leaflet.js"></script>
-    <script src="../static/js/leaflet-routing-machine.js"></script>
+    <script src="../static/js/leaflet-routing-machine.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mapbox/corslite@0.0.7/corslite.min.js"></script>
@@ -44,6 +44,7 @@
 
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    <!-- <script src="../static/math.js?r={{reload}}"></script> -->
 
     <script>
         // initialize the map
@@ -115,7 +116,7 @@
                     } else {
                         var json = JSON.parse(this.responseText)
                             // console.log(json.error.message)
-                        $("#warning").html(json.error.message);
+                            // $("#warning").html(json.error.message);
 
                     }
 
@@ -125,36 +126,19 @@
 
             request.send();
 
-            // var form = $(this)
-            // console.log('----------------------')
+            var form = $(this)
+                // console.log('----------------------')
 
-            // $.ajax({
-            //     type: "POST",
-            //     url: 'map_data',
-            //     data: form.serialize(), // serializes the form's elements.
-            //     success: function(geoJson)
-            //     {
-            //         // L.geoJSON(geoJson, {
-            //         //     style: function (feature) {
-            //         //         return {color: feature.properties.color};
-            //         //     }
-            //         // }).bindPopup(function (layer) {
-            //         //     return layer.feature.properties.description;
-            //         // }).addTo(map);
-            //         // map.fitBounds(geojson.getBounds());
-
-
-            //         // var myLayer = L.geoJSON().addTo(map);
-            //         // myLayer.addData(geoJson);
-            //         // console.log('1')
-
-            //         var geojson = L.geoJSON(geoJson).addTo(map);
-            //         console.log('2')
-            //         map.fitBounds(geojson.getBounds());
-            //         console.log('3')
-
-            //     }
-            // });
+            $.ajax({
+                type: "POST",
+                url: '/get_data_dict',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                data: form.serialize(), // serializes the form's elements.
+                success: function(response) {
+                    $("#warning").html(response.error_message);
+                }
+            });
 
 
         });
